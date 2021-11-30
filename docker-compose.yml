@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  django:
+    build: .
+    command: gunicorn classroom.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - media_volume:/code/media
+      - static_volume:/code/static
+    expose:
+      - 8000
+    ports:
+      - '8000:8000'
+    env_file:
+      - ./env.dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=classroom
+      - POSTGRES_PASSWORD=classroom
+      - POSTGRES_DB=classroom
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - media_volume:/code/media
+      - static_volume:/code/static
+    ports:
+      - 800:80
+    depends_on:
+      - django
+
+
+volumes:
+      postgres_data:
+      media_volume:
+      static_volume:
+
